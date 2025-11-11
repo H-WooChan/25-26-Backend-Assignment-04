@@ -43,7 +43,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserInfoRes getMyInfo(Principal principal) {
-        User user = getUserEntity(Long.parseLong(principal.getName()));
+        User user = getLoggedInUserEntity(principal);
         return UserInfoRes.fromEntity(user);
     }
 
@@ -55,7 +55,7 @@ public class UserService {
 
     @Transactional
     public UserInfoRes updateMyInfo(Principal principal, UserUpdateReq userUpdateReq) {
-        User user = getUserEntity(Long.parseLong(principal.getName()));
+        User user = getLoggedInUserEntity(principal);
         user.updateInfo(
                 userUpdateReq.password() == null ? user.getPassword() : passwordEncoder.encode(userUpdateReq.password()),
                 userUpdateReq.name() == null ? user.getName() : userUpdateReq.name()
@@ -65,12 +65,22 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Principal principal) {
-        userRepository.deleteById(Long.parseLong(principal.getName()));
+        User userToDelete = getLoggedInUserEntity(principal);
+        userRepository.delete(userToDelete);
     }
 
     @Transactional(readOnly = true)
     public User getUserEntity(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("유저가 존재하지 않습니다."));
+    }
+
+    @Transactional(readOnly = true)
+    public User getLoggedInUserEntity(Principal principal) {
+        if (principal == null || principal.getName() == null) {
+            throw new RuntimeException("Principal이 존재하지 않습니다. (인증 필요)");
+        }
+        Long userId = Long.parseLong(principal.getName());
+        return getUserEntity(userId);
     }
 }

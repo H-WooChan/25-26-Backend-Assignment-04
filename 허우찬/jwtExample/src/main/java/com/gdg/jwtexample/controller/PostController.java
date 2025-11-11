@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,8 +32,8 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<PostInfoRes> getPost(@PathVariable Long postId) {
-        return ResponseEntity.ok(postService.getPostInfo(postId));
+    public ResponseEntity<PostInfoRes> getPost(Principal principal, @PathVariable Long postId) {
+        return ResponseEntity.ok(postService.getPostInfo(principal, postId));
     }
 
     @PatchMapping("/{postId}")
@@ -44,5 +45,10 @@ public class PostController {
     public ResponseEntity<Void> deletePost(Principal principal, @PathVariable Long postId) {
         postService.deletePost(principal, postId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/my-posts")
+    public ResponseEntity<List<PostInfoRes>> getAllMyPosts(Principal principal) {
+        return ResponseEntity.ok(postService.getAllMyPosts(principal));
     }
 }
